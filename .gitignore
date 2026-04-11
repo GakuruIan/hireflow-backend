@@ -1,0 +1,58 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+.envrc
+.python-version
+
+# Virtual environments
+venv/
+.venv/
+env/
+/lib64
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test, type-check, and coverage caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.tox/
+.nox/
+
+# Logs
+*.log
+*.out
+*.err
+*.pid
+*.pid.lock
+
+# Local databases and runtime files
+*.sqlite3
+*.db
+instance/
+
+# Tooling metadata
+.codex
+.cache/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
