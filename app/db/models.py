@@ -8,6 +8,10 @@ from app.core.config import settings
 class VerificationPurpose(str, Enum):
     EMAIL_VERIFICATION = "email_verification"
     PASSWORD_RESET = "password_reset"
+    
+class Role(str, Enum):
+    RECRUITER = "recruiter"
+    JOB_SEEKER = "job_seeker"
 
 class User(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -15,6 +19,7 @@ class User(SQLModel, table=True):
     email: str=Field(index=True, unique=True)
     password: str
     is_verified: bool = Field(default=False)
+    role: Role = Field(default=Role.JOB_SEEKER, index=True)
 
     # account timestamps
     locked_until: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))

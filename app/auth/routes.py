@@ -11,13 +11,18 @@ from app.core.security import create_access_token,create_verification_token
 # seesion control
 from app.db.session import get_session
 
+# settings
 from app.core.config import settings
+
+# models
 from app.db.models import VerificationPurpose
 
+from app.core.rate_limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=MessageResponse)
+@limiter.limit("3/minute")
 def register(payload:RegisterSchema,response:Response,db= Depends(get_session)):
     user = register_user(db, payload)
     verification_token = create_verification_token(data={"sub": user.email,"scope":"email_verification"})
@@ -35,6 +40,7 @@ def register(payload:RegisterSchema,response:Response,db= Depends(get_session)):
     
     return {"message": "Please check your email for the verification code"}
 
+@limiter.limit("10/minute")
 @router.post("/verify-email",response_model=LoginResponse)
 def verify_email(payload: VerifyEmailSchema, verification_token: str = Cookie(None), response: Response = None,request: Request = None, db=Depends(get_session)):
     
@@ -46,6 +52,7 @@ def verify_email(payload: VerifyEmailSchema, verification_token: str = Cookie(No
     return {"user": user, "message": "Email verified successfully"}
     
 @router.post("/login", response_model=LoginResponse) 
+@limiter.limit("5/minute")
 def login(payload: LoginSchema, response: Response, request: Request, db=Depends(get_session)) -> LoginResponse:
     user = login_user(db, response, request, payload.email, payload.password)
     return {"user": user, "message": "Login successful"}
@@ -56,6 +63,7 @@ def refresh_token(refresh_token: str = Cookie(None), response: Response = None, 
     return message
 
 @router.post("/reset-password",response_model=MessageResponse)
+@limiter.limit("3/minute")
 def reset_password(email: str, response: Response, db=Depends(get_session)):
     user = reset_password_service(db, email)
     
@@ -74,6 +82,7 @@ def reset_password(email: str, response: Response, db=Depends(get_session)):
     return {"message": "Password reset email sent"}
 
 @router.post("/confirm-reset-password",response_model=MessageResponse)
+@limiter.limit("5/minute")
 def confirm_reset_password(data: PasswordResetSchema, password_reset_token: str = Cookie(None), response: Response = None, db=Depends(get_session)):
     message = confirm_reset_password_service(data, password_reset_token, db)
     
@@ -82,16 +91,19 @@ def confirm_reset_password(data: PasswordResetSchema, password_reset_token: str 
 
 
 @router.post("/refresh-token")
+@limiter.limit("20/minute")
 def refresh_token(refresh_token: str = Cookie(None), response: Response = None, db=Depends(get_session)):
     message = refresh_token_service(db, refresh_token, response)
     return message
     
 @router.post("/resend-code",response_model=MessageResponse)
+@limiter.limit("3/minute")
 def resend_code(email: str, code_type: VerificationPurpose, response: Response, db=Depends(get_session)):
     message = resend_code_service(db, response,email,code_type)
     return message
 
 @router.post("/logout", response_model=MessageResponse)
+@limiter.limit("30/minute")
 def logout(response: Response):
     response.delete_cookie(key="access_token")
     response.delete_cookie(key="refresh_token")
