@@ -25,4 +25,4 @@ def key_func(request):
     # 2. Fallback to IP
     return f"ip:{request.client.host}"
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=key_func)

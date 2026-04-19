@@ -1,9 +1,17 @@
 from datetime import datetime, timezone, timedelta
-from app.core.config import settings
-from app.db.models import User
 
-from datetime import datetime, timezone
-from app.db.models import User
+# config
+from app.core.config import settings
+# models
+from app.db.models import User,User,AppLogs,LogCategory,LogLevel
+
+# helper functions
+from .client_info import get_client_info
+
+from fastapi import Request
+
+
+from sqlmodel import Session
 
 
 def ensure_utc(dt: datetime | None) -> datetime | None:
@@ -45,3 +53,19 @@ def reset_login_attempts(user: User):
     user.locked_until = None
 
 
+def log_event(db: Session, user_id:str, action: str, category: LogCategory, message: str, level: LogLevel,meta_data: dict | None, request: Request | None = None):
+    client_info = get_client_info(request)
+    log_entry = AppLogs(
+        user_id=user_id,
+        action=action,
+        level=level,
+        category=category,
+        message=message,
+        meta_data=meta_data,  
+        ip_address=client_info.get('ip_address'),
+        os=client_info.get('os'),
+        user_agent=client_info.get('user_agent'),
+        browser=client_info.get('browser'),
+    )
+    db.add(log_entry)
+    db.commit()

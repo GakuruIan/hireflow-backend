@@ -7,6 +7,7 @@ class RegisterSchema(BaseModel):
     fullname:str
     email: EmailStr
     password: str
+    role:str
     
 class LoginSchema(BaseModel):
     email: EmailStr
